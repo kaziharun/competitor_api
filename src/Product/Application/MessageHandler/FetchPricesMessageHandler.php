@@ -22,7 +22,6 @@ final class FetchPricesMessageHandler
     public function __invoke(FetchPricesMessage $message): void
     {
         $productId = $message->getProductId();
-        $requestId = $message->getRequestId();
 
         try {
             $prices = $this->fetchUseCase->execute($productId);

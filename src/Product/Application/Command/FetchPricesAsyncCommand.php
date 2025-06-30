@@ -57,10 +57,10 @@ final class FetchPricesAsyncCommand extends Command
     private function fetchSingleProduct(string $productId, SymfonyStyle $io): void
     {
         try {
-            $productIdValueObject = new ProductId($productId);
+            $productId = new ProductId($productId);
             $requestId = new RequestId(uniqid('fetch_', true));
 
-            $message = FetchPricesMessage::create($productIdValueObject, $requestId);
+            $message = FetchPricesMessage::create($productId, $requestId);
             $this->messageBus->dispatch($message);
 
             $io->success(sprintf(
@@ -83,10 +83,10 @@ final class FetchPricesAsyncCommand extends Command
 
         foreach ($this->defaultProductIdsService->getDefaultProductIds() as $productId) {
             try {
-                $productIdValueObject = new ProductId($productId);
+                $productId = new ProductId($productId);
                 $requestId = new RequestId(uniqid('fetch_', true));
 
-                $message = FetchPricesMessage::create($productIdValueObject, $requestId);
+                $message = FetchPricesMessage::create($productId, $requestId);
                 $this->messageBus->dispatch($message);
 
                 $io->text(sprintf(

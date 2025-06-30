@@ -36,13 +36,17 @@ services:
     redis.client:
         alias: Predis\ClientInterface
 
-    # Strategy Interface Aliases
-    App\Product\Domain\Service\Strategy\PriceAggregationStrategyInterface:
-        alias: App\Product\Domain\Service\Strategy\AveragePriceAggregationStrategy
-
-    # Competitor API Factory and Implementations
     App\Product\Infrastructure\Api\CompetitorApiFactory:
-        # No arguments needed, class has no constructor
+        arguments:
+            $competitorApis: !tagged_iterator app.competitor_api
+            
+    App\Product\Infrastructure\Api\ExternalApiInterface:
+        tags: ['app.competitor_api']
+
+    App\Product\Application\Service\CompetitorPriceService:
+        arguments:
+            $apiFactory: '@App\Product\Infrastructure\Api\CompetitorApiFactory'
+            $defaultProductIdsService: '@App\Product\Application\Service\DefaultProductIdsService'
 
     App\Product\Infrastructure\Api\CompetitorApi1:
         tags: ['app.competitor_api']
@@ -53,20 +57,15 @@ services:
     App\Product\Infrastructure\Api\CompetitorApi3:
         tags: ['app.competitor_api']
 
-    # CompetitorPriceService now uses CompetitorApiFactory
-    App\Product\Application\Service\CompetitorPriceService:
-        arguments:
-            $apiFactory: '@App\Product\Infrastructure\Api\CompetitorApiFactory'
+
+      # Strategy Interface Aliases
+    App\Product\Domain\Service\Strategy\PriceAggregationStrategyInterface:
+        alias: App\Product\Domain\Service\Strategy\AveragePriceAggregationStrategy
 
     # Cache Services
     App\Product\Infrastructure\Cache\ProductPriceCacheService:
         arguments:
             $cache: '@App\Shared\Infrastructure\Cache\RedisCache'
-
-    # Price Aggregation Service
-    App\Product\Domain\Service\PriceAggregationService:
-        arguments:
-            $repository: '@App\Product\Domain\Repository\ProductPriceRepositoryInterface'
 
     # Cached Use Cases
     App\Product\Application\UseCase\CachedGetAllProductPricesUseCase:

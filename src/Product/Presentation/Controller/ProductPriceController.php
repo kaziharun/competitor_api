@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/prices')]
-final class ProductPriceController extends AbstractController
+class ProductPriceController extends AbstractController
 {
     public function __construct(
         private readonly ProductPriceApiService $apiService,

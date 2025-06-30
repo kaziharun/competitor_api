@@ -10,9 +10,11 @@ final class CompetitorApiFactory
 {
     private array $apis = [];
 
-    public function __construct()
+    public function __construct(iterable $competitorApis)
     {
-        $this->initializeApis();
+        foreach ($competitorApis as $api) {
+            $this->register($api->getProviderName(), $api);
+        }
     }
 
     private function initializeApis(): void
@@ -64,31 +66,4 @@ final class CompetitorApiFactory
         return array_keys($this->apis);
     }
 
-    public function getHealthyApis(): array
-    {
-        $healthy = [];
-
-        foreach ($this->apis as $name => $api) {
-            if ($api->isAvailable()) {
-                $healthy[$name] = $api;
-            }
-        }
-
-        return $healthy;
-    }
-
-    public function getHealthStatus(): array
-    {
-        $status = [];
-
-        foreach ($this->apis as $name => $api) {
-            $status[$name] = [
-                'provider' => $api->getProviderName(),
-                'available' => $api->isAvailable(),
-                'rate_limit' => $api->getRateLimitInfo(),
-            ];
-        }
-
-        return $status;
-    }
 }
