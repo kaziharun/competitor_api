@@ -6,23 +6,24 @@ namespace App\Product\Application\Service;
 
 use App\Product\Domain\Entity\ProductPrice;
 use App\Product\Domain\ValueObject\FetchedAt;
+use App\Product\Domain\ValueObject\Price;
 use App\Product\Domain\ValueObject\PriceData;
 use App\Product\Domain\ValueObject\ProductId;
+use App\Product\Domain\ValueObject\VendorName;
 use App\Product\Infrastructure\Api\CompetitorApiFactory;
 
-class CompetitorPriceService
+final class CompetitorPriceService
 {
-    private const DEFAULT_PRODUCT_IDS = ['123', '456', '789'];
-
     public function __construct(
         private readonly CompetitorApiFactory $apiFactory,
+        private readonly DefaultProductIdsService $defaultProductIdsService,
     ) {
     }
 
     public function fetchAndAggregatePrices(?ProductId $productId = null): array
     {
         $allPrices = [];
-        $productIds = $productId ? [$productId->getValue()] : self::DEFAULT_PRODUCT_IDS;
+        $productIds = $this->getProductIdsToFetch($productId);
 
         foreach ($productIds as $productIdString) {
             try {
@@ -45,6 +46,16 @@ class CompetitorPriceService
         }
 
         return $allPrices;
+    }
+
+    private function getProductIdsToFetch(?ProductId $productId = null): array
+    {
+        return $productId ? [$productId->getValue()] : $this->defaultProductIdsService->getDefaultProductIds();
+    }
+
+    private function isDefaultProduct(string $productId): bool
+    {
+        return $this->defaultProductIdsService->hasDefaultProductId($productId);
     }
 
     private function fetchPricesFromAllApis(ProductId $productId): array
@@ -71,22 +82,22 @@ class CompetitorPriceService
         if (isset($result['prices'])) {
             foreach ($result['prices'] as $priceData) {
                 $prices[] = new PriceData(
-                    new \App\Product\Domain\ValueObject\VendorName($priceData['vendor']),
-                    new \App\Product\Domain\ValueObject\Price($priceData['price'])
+                    new VendorName($priceData['vendor']),
+                    new Price($priceData['price'])
                 );
             }
         } elseif (isset($result['competitor_data'])) {
             foreach ($result['competitor_data'] as $priceData) {
                 $prices[] = new PriceData(
-                    new \App\Product\Domain\ValueObject\VendorName($priceData['name']),
-                    new \App\Product\Domain\ValueObject\Price($priceData['amount'])
+                    new VendorName($priceData['name']),
+                    new Price($priceData['amount'])
                 );
             }
         } elseif (isset($result['market_prices'])) {
             foreach ($result['market_prices'] as $priceData) {
                 $prices[] = new PriceData(
-                    new \App\Product\Domain\ValueObject\VendorName($priceData['competitor']),
-                    new \App\Product\Domain\ValueObject\Price($priceData['value'])
+                    new VendorName($priceData['competitor']),
+                    new Price($priceData['value'])
                 );
             }
         }

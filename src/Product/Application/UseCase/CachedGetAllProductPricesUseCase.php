@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Product\Application\UseCase;
 
-use App\Product\Domain\Entity\ProductPrice;
 use App\Product\Domain\Repository\ProductPriceRepositoryInterface;
 use App\Product\Infrastructure\Cache\ProductPriceCacheService;
 

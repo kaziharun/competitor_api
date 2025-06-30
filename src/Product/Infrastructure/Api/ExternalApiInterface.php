@@ -15,4 +15,4 @@ interface ExternalApiInterface
     public function isAvailable(): bool;
 
     public function getRateLimitInfo(): array;
-} 
+}

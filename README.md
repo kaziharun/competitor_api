@@ -9,8 +9,24 @@
 2. Configure your `.env` file with database and Redis settings.
 3. Run migrations:
    ```bash
+   php bin/console doctrine:database:create
    php bin/console doctrine:migrations:migrate
    ```
+
+4. **Start services (optional):**
+```bash
+# Start containers
+docker compose up -d
+
+# Install Composer dependencies
+docker compose exec php composer install
+
+# Create database
+docker compose exec php bin/console doctrine:database:create
+
+# Run migrations
+docker compose exec php bin/console doctrine:migrations:migrate -n
+```
 
 ## Fetch Data for a Product
 
@@ -38,8 +54,7 @@ php bin/console messenger:consume async -vv
 Make a GET request (replace `123` with your product ID):
 ```bash
 curl -X GET "http://localhost:8000/api/prices/123" \
-  -H "X-API-Key: K4kP9wqX2YbV5nJm8tRv7sA6zQ3fH1gL" \
-  -H "Content-Type: application/json"
+  -H "X-API-Key: K4kP9wqX2YbV5nJm8tRv7sA6zQ3fH1gL" 
 ```
 
 ## Fetch All Prices via API
@@ -47,8 +62,7 @@ curl -X GET "http://localhost:8000/api/prices/123" \
 Make a GET request to fetch all prices:
 ```bash
 curl -X GET "http://localhost:8000/api/prices" \
-  -H "X-API-Key: K4kP9wqX2YbV5nJm8tRv7sA6zQ3fH1gL" \
-  -H "Content-Type: application/json"
+  -H "X-API-Key: K4kP9wqX2YbV5nJm8tRv7sA6zQ3fH1gL" 
 ```
 
 ## Code Structure

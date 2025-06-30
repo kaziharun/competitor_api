@@ -35,7 +35,8 @@ final class RedisCache implements CacheInterface
         }
 
         $result = $this->redis->setex($key, $ttl, $serializedValue);
-        return $result === 'OK';
+
+        return 'OK' === $result;
     }
 
     public function delete(string $key): bool
@@ -50,7 +51,7 @@ final class RedisCache implements CacheInterface
 
     public function clear(): bool
     {
-        return $this->redis->flushdb() === 'OK';
+        return 'OK' === $this->redis->flushdb();
     }
 
     public function has(string $key): bool

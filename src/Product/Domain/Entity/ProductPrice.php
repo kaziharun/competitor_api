@@ -15,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'product_prices')]
 #[ORM\Index(columns: ['product_id'])]
 #[ORM\Index(columns: ['fetched_at'])]
+#[ORM\UniqueConstraint(name: 'unique_product', columns: ['product_id'])]
 class ProductPrice extends BaseEntity
 {
     #[ORM\Column(length: 255)]

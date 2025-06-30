@@ -29,6 +29,7 @@ final class ProductIdValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $value)
                 ->addViolation();
+
             return;
         }
 
@@ -38,4 +39,4 @@ final class ProductIdValidator extends ConstraintValidator
                 ->addViolation();
         }
     }
-} 
+}

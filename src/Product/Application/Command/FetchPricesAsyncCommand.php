@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Product\Application\Command;
 
 use App\Product\Application\Message\FetchPricesMessage;
+use App\Product\Application\Service\DefaultProductIdsService;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\RequestId;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -21,10 +22,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 )]
 final class FetchPricesAsyncCommand extends Command
 {
-    private const DEFAULT_PRODUCT_IDS = ['123', '456', '789'];
-
     public function __construct(
         private readonly MessageBusInterface $messageBus,
+        private readonly DefaultProductIdsService $defaultProductIdsService,
     ) {
         parent::__construct();
     }
@@ -71,9 +71,9 @@ final class FetchPricesAsyncCommand extends Command
 
             $io->note('The message has been queued. Run "php bin/console messenger:consume async" to process it.');
         } catch (\InvalidArgumentException $e) {
-            $io->error('Invalid product ID: ' . $e->getMessage());
+            $io->error('Invalid product ID: '.$e->getMessage());
         } catch (\Exception $e) {
-            $io->error('Error dispatching message: ' . $e->getMessage());
+            $io->error('Error dispatching message: '.$e->getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ final class FetchPricesAsyncCommand extends Command
     {
         $io->info('Fetching prices for all default products...');
 
-        foreach (self::DEFAULT_PRODUCT_IDS as $productId) {
+        foreach ($this->defaultProductIdsService->getDefaultProductIds() as $productId) {
             try {
                 $productIdValueObject = new ProductId($productId);
                 $requestId = new RequestId(uniqid('fetch_', true));
@@ -102,4 +102,4 @@ final class FetchPricesAsyncCommand extends Command
         $io->success('All fetch requests have been dispatched to the queue.');
         $io->note('Run "php bin/console messenger:consume async" to process the messages.');
     }
-} 
+}

@@ -9,19 +9,15 @@ use App\Product\Domain\ValueObject\ProductId;
 
 interface ProductPriceRepositoryInterface
 {
-    public function save(ProductPrice $productPrice): void;
+    public function save(\App\Shared\Domain\Entity\BaseEntity $entity): void;
+
+    public function saveOrUpdate(ProductPrice $productPrice): void;
+
+    public function saveAll(array $productPrices): void;
 
     public function findByProductId(ProductId $productId): ?ProductPrice;
 
-    /**
-     * @param array<ProductPrice> $productPrices
-     */
-    public function saveAll(array $productPrices): void;
+    public function findAll(?int $limit = null): array;
 
     public function deleteByProductId(ProductId $productId): void;
-
-    /**
-     * @return array<ProductPrice>
-     */
-    public function findAll(): array;
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Product\Infrastructure\ExternalApi;
 
-use App\Product\Domain\ValueObject\PriceData;
 use App\Product\Domain\ValueObject\ProductId;
 
 abstract class AbstractApiClient

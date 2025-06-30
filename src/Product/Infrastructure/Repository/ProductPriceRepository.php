@@ -32,10 +32,31 @@ final class ProductPriceRepository extends BaseRepository implements ProductPric
         $this->entityManager->flush();
     }
 
+    public function saveOrUpdate(ProductPrice $productPrice): void
+    {
+        $existing = $this->findByProductId($productPrice->getProductId());
+
+        if ($existing) {
+            $existing->updatePrice(
+                $productPrice->getPrice(),
+                $productPrice->getVendorName(),
+                $productPrice->getFetchedAt()
+            );
+        } else {
+            $this->entityManager->persist($productPrice);
+        }
+
+        $this->entityManager->flush();
+    }
+
     public function saveAll(array $productPrices): void
     {
         foreach ($productPrices as $productPrice) {
-            $this->entityManager->persist($productPrice);
+            if ($productPrice instanceof ProductPrice) {
+                $this->saveOrUpdate($productPrice);
+            } else {
+                $this->entityManager->persist($productPrice);
+            }
         }
         $this->entityManager->flush();
     }
@@ -46,9 +67,18 @@ final class ProductPriceRepository extends BaseRepository implements ProductPric
             ->findOneBy(['productId' => $productId->getValue()]);
     }
 
-    public function findAll(): array
+    public function findAll(?int $limit = null): array
     {
-        return $this->entityManager->getRepository(ProductPrice::class)->findAll();
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('p')
+           ->from(ProductPrice::class, 'p')
+           ->orderBy('p.createdAt', 'DESC');
+
+        if ($limit) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function deleteByProductId(ProductId $productId): void

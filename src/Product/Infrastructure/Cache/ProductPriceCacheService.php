@@ -5,48 +5,72 @@ declare(strict_types=1);
 namespace App\Product\Infrastructure\Cache;
 
 use App\Product\Domain\Entity\ProductPrice;
+use App\Product\Domain\Repository\ProductPriceRepositoryInterface;
+use App\Product\Domain\ValueObject\FetchedAt;
+use App\Product\Domain\ValueObject\Price;
 use App\Product\Domain\ValueObject\ProductId;
-use App\Shared\Infrastructure\Cache\CacheInterface;
+use App\Product\Domain\ValueObject\VendorName;
+use App\Shared\Infrastructure\Cache\RedisCache;
 
 final class ProductPriceCacheService
 {
-    private const CACHE_TTL = 300;
-    private const PRODUCT_PRICE_KEY_PREFIX = 'product_price:';
+    private const CACHE_PREFIX = 'product_price:';
+    private const CACHE_TTL = 3600;
     private const PRODUCT_LIST_KEY = 'product_list';
 
     public function __construct(
-        private readonly CacheInterface $cache,
+        private readonly RedisCache $cache,
+        private readonly ProductPriceRepositoryInterface $repository,
     ) {
-    }
-
-    public function cacheProductPrice(ProductPrice $productPrice): bool
-    {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productPrice->getProductId()->getValue();
-        $serializedData = $this->serializeProductPrice($productPrice);
-
-        return $this->cache->set($cacheKey, $serializedData, self::CACHE_TTL);
     }
 
     public function getCachedProductPrice(ProductId $productId): ?ProductPrice
     {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
+        $cacheKey = $this->buildCacheKey($productId->getValue());
         $cachedData = $this->cache->get($cacheKey);
 
         if (null === $cachedData) {
             return null;
         }
 
-        return $this->deserializeProductPrice($cachedData);
+        try {
+            return $this->deserializeProductPrice($cachedData);
+        } catch (\Exception $e) {
+            $this->cache->delete($cacheKey);
+
+            return null;
+        }
     }
 
-    public function cacheProductList(array $productPrices): bool
+    public function cacheProductPrice(ProductPrice $productPrice): void
     {
-        $serializedData = array_map(
-            fn ($productPrice) => $this->serializeProductPrice($productPrice),
-            $productPrices
-        );
+        $cacheKey = $this->buildCacheKey($productPrice->getProductId()->getValue());
+        $serializedData = $this->serializeProductPrice($productPrice);
 
-        return $this->cache->set(self::PRODUCT_LIST_KEY, $serializedData, self::CACHE_TTL);
+        $this->cache->set($cacheKey, $serializedData, self::CACHE_TTL);
+    }
+
+    public function invalidateProductPrice(ProductId $productId): void
+    {
+        $cacheKey = $this->buildCacheKey($productId->getValue());
+        $this->cache->delete($cacheKey);
+    }
+
+    public function getOrFetchProductPrice(ProductId $productId): ?ProductPrice
+    {
+        $cachedPrice = $this->getCachedProductPrice($productId);
+
+        if (null !== $cachedPrice) {
+            return $cachedPrice;
+        }
+
+        $productPrice = $this->repository->findByProductId($productId);
+
+        if (null !== $productPrice) {
+            $this->cacheProductPrice($productPrice);
+        }
+
+        return $productPrice;
     }
 
     public function getCachedProductList(): ?array
@@ -57,10 +81,31 @@ final class ProductPriceCacheService
             return null;
         }
 
-        return array_map(
-            fn ($data) => $this->deserializeProductPrice($data),
-            $cachedData
+        try {
+            return array_map(
+                fn ($data) => $this->deserializeProductPrice($data),
+                $cachedData
+            );
+        } catch (\Exception $e) {
+            $this->cache->delete(self::PRODUCT_LIST_KEY);
+
+            return null;
+        }
+    }
+
+    public function cacheProductList(array $productPrices): void
+    {
+        $serializedData = array_map(
+            fn ($productPrice) => $this->serializeProductPrice($productPrice),
+            $productPrices
         );
+
+        $this->cache->set(self::PRODUCT_LIST_KEY, $serializedData, self::CACHE_TTL);
+    }
+
+    private function buildCacheKey(string $productId): string
+    {
+        return self::CACHE_PREFIX.$productId;
     }
 
     private function serializeProductPrice(ProductPrice $productPrice): array
@@ -71,7 +116,6 @@ final class ProductPriceCacheService
             'price' => $productPrice->getPrice()->getValue(),
             'fetched_at' => $productPrice->getFetchedAt()->getValue()->format('Y-m-d H:i:s'),
             'created_at' => $productPrice->getCreatedAt()->format('Y-m-d H:i:s'),
-            'updated_at' => $productPrice->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -79,9 +123,9 @@ final class ProductPriceCacheService
     {
         return new ProductPrice(
             new ProductId($data['product_id']),
-            new \App\Product\Domain\ValueObject\VendorName($data['vendor_name']),
-            new \App\Product\Domain\ValueObject\Price($data['price']),
-            new \App\Product\Domain\ValueObject\FetchedAt(new \DateTimeImmutable($data['fetched_at']))
+            new VendorName($data['vendor_name']),
+            new Price($data['price']),
+            new FetchedAt(new \DateTimeImmutable($data['fetched_at']))
         );
     }
-} 
+}

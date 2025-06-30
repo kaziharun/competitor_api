@@ -36,6 +36,9 @@ final class Version20250629004305 extends AbstractMigration
         // Add indexes
         $this->addSql('CREATE INDEX IDX_PRODUCT_ID ON product_prices (product_id)');
         $this->addSql('CREATE INDEX IDX_FETCHED_AT ON product_prices (fetched_at)');
+
+        // Add unique constraint on product_id only (one price per product)
+        $this->addSql('CREATE UNIQUE INDEX unique_product ON product_prices (product_id)');
     }
 
     public function down(Schema $chema): void

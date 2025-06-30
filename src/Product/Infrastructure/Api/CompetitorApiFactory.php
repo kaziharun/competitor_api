@@ -4,12 +4,45 @@ declare(strict_types=1);
 
 namespace App\Product\Infrastructure\Api;
 
-class CompetitorApiFactory
+use App\Product\Domain\ValueObject\ProductId;
+
+final class CompetitorApiFactory
 {
     private array $apis = [];
 
     public function __construct()
     {
+        $this->initializeApis();
+    }
+
+    private function initializeApis(): void
+    {
+        $this->apis = [
+            'competitor_api_1' => new CompetitorApi1(),
+            'competitor_api_2' => new CompetitorApi2(),
+            'competitor_api_3' => new CompetitorApi3(),
+        ];
+    }
+
+    public function createAllApis(): array
+    {
+        return $this->apis;
+    }
+
+    public function getCompetitorPricesFromAllApis(string $productId): array
+    {
+        $results = [];
+
+        foreach ($this->apis as $apiName => $api) {
+            try {
+                $prices = $api->getCompetitorPrices(new ProductId($productId));
+                $results[$apiName] = $prices;
+            } catch (\Exception $e) {
+                $results[$apiName] = null;
+            }
+        }
+
+        return $results;
     }
 
     public function register(string $name, ExternalApiInterface $api): void
@@ -42,27 +75,6 @@ class CompetitorApiFactory
         }
 
         return $healthy;
-    }
-
-    public function getCompetitorPricesFromAllApis(string $productId): array
-    {
-        $results = [];
-
-        foreach ($this->apis as $name => $api) {
-            if (!$api->isAvailable()) {
-                $results[$name] = null;
-                continue;
-            }
-
-            try {
-                $prices = $api->getCompetitorPrices(new \App\Product\Domain\ValueObject\ProductId($productId));
-                $results[$name] = $prices;
-            } catch (\Exception $e) {
-                $results[$name] = null;
-            }
-        }
-
-        return $results;
     }
 
     public function getHealthStatus(): array

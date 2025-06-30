@@ -1,0 +1,9 @@
+# Environment variables (optional but recommended)
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Messenger worker (runs continuously with restart every hour)
+* * * * * www-data cd /var/www && php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M >> /var/www/var/log/cron.log 2>&1
+
+# Daily price fetch at 3 AM
+0 3 * * * www-data cd /var/www && php bin/console app:fetch-prices-async >> /var/www/var/log/cron.log 2>&1

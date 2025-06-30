@@ -68,6 +68,10 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
+        "cron": [
+            "@php bin/console messenger:consume async --time-limit=3600",
+            "@php bin/console app:fetch-prices-async"
+        ],
         "test": "phpunit",
         "test:unit": "phpunit --testsuite=unit",
         "test:integration": "phpunit --testsuite=integration",
