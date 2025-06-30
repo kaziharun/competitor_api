@@ -58,9 +58,6 @@ abstract class AbstractApiClient
         return $response['data'] ?? [];
     }
 
-    /**
-     * @return PriceData[]
-     */
     public function fetchPricesForProduct(ProductId $productId): array
     {
         $this->preRequest($productId);
@@ -80,28 +77,18 @@ abstract class AbstractApiClient
 
     protected function preRequest(ProductId $productId): void
     {
-        // Hook for pre-request processing
     }
 
-    /**
-     * @param PriceData[] $prices
-     */
     protected function postRequest(array $prices): void
     {
-        // Hook for post-request processing
     }
 
     protected function onError(ProductId $productId, \Exception $e): void
     {
-        // Implement error handling logic
     }
 
-    /**
-     * @return PriceData[]
-     */
     protected function doFetchPrices(ProductId $productId): array
     {
-        // This method should be implemented by concrete classes
         throw new \RuntimeException('doFetchPrices method must be implemented');
     }
 }

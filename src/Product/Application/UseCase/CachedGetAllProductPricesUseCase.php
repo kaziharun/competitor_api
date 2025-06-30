@@ -8,9 +8,6 @@ use App\Product\Domain\Entity\ProductPrice;
 use App\Product\Domain\Repository\ProductPriceRepositoryInterface;
 use App\Product\Infrastructure\Cache\ProductPriceCacheService;
 
-/**
- * Cached version of GetAllProductPricesUseCase that uses Redis caching.
- */
 final class CachedGetAllProductPricesUseCase
 {
     public function __construct(
@@ -19,11 +16,6 @@ final class CachedGetAllProductPricesUseCase
     ) {
     }
 
-    /**
-     * Execute the use case with caching.
-     *
-     * @return ProductPrice[]
-     */
     public function execute(): array
     {
         $cachedData = $this->cacheService->getCachedProductList();

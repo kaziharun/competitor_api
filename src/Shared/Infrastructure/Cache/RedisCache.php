@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Cache;
 
+use Predis\ClientInterface;
+
 final class RedisCache implements CacheInterface
 {
     private const DEFAULT_TTL = 3600;
 
     public function __construct(
-        private readonly \Redis $redis,
+        private readonly ClientInterface $redis,
     ) {
     }
 
@@ -17,7 +19,7 @@ final class RedisCache implements CacheInterface
     {
         $value = $this->redis->get($key);
 
-        if (false === $value) {
+        if (null === $value) {
             return null;
         }
 
@@ -32,7 +34,8 @@ final class RedisCache implements CacheInterface
             return false;
         }
 
-        return $this->redis->setex($key, $ttl, $serializedValue);
+        $result = $this->redis->setex($key, $ttl, $serializedValue);
+        return $result === 'OK';
     }
 
     public function delete(string $key): bool
@@ -47,7 +50,7 @@ final class RedisCache implements CacheInterface
 
     public function clear(): bool
     {
-        return $this->redis->flushDB();
+        return $this->redis->flushdb() === 'OK';
     }
 
     public function has(string $key): bool
@@ -61,8 +64,8 @@ final class RedisCache implements CacheInterface
         $result = [];
 
         foreach ($keys as $index => $key) {
-            $value = $values[$index] ?? false;
-            $result[$key] = false === $value ? null : json_decode($value, true);
+            $value = $values[$index] ?? null;
+            $result[$key] = null === $value ? null : json_decode($value, true);
         }
 
         return $result;
@@ -70,7 +73,7 @@ final class RedisCache implements CacheInterface
 
     public function setMultiple(array $values, int $ttl = self::DEFAULT_TTL): bool
     {
-        $pipeline = $this->redis->multi();
+        $pipeline = $this->redis->pipeline();
 
         foreach ($values as $key => $value) {
             $serializedValue = json_encode($value);
@@ -79,7 +82,7 @@ final class RedisCache implements CacheInterface
             }
         }
 
-        $results = $pipeline->exec();
+        $results = $pipeline->execute();
 
         return !in_array(false, $results, true);
     }

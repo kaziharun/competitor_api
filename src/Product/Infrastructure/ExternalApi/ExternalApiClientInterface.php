@@ -9,8 +9,5 @@ use App\Product\Domain\ValueObject\ProductId;
 
 interface ExternalApiClientInterface
 {
-    /**
-     * @return PriceData[]
-     */
     public function fetchPricesForProduct(ProductId $productId): array;
 }

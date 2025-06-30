@@ -4,6 +4,24 @@ declare(strict_types=1);
 
 namespace App\Product\Domain\Repository;
 
-interface ProductPriceRepositoryInterface extends ReadProductPriceRepositoryInterface, WriteProductPriceRepositoryInterface
+use App\Product\Domain\Entity\ProductPrice;
+use App\Product\Domain\ValueObject\ProductId;
+
+interface ProductPriceRepositoryInterface
 {
+    public function save(ProductPrice $productPrice): void;
+
+    public function findByProductId(ProductId $productId): ?ProductPrice;
+
+    /**
+     * @param array<ProductPrice> $productPrices
+     */
+    public function saveAll(array $productPrices): void;
+
+    public function deleteByProductId(ProductId $productId): void;
+
+    /**
+     * @return array<ProductPrice>
+     */
+    public function findAll(): array;
 }

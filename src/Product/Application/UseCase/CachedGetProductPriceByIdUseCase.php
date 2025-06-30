@@ -9,9 +9,6 @@ use App\Product\Domain\Repository\ProductPriceRepositoryInterface;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Infrastructure\Cache\ProductPriceCacheService;
 
-/**
- * Cached version of GetProductPriceByIdUseCase that uses Redis caching.
- */
 final class CachedGetProductPriceByIdUseCase
 {
     public function __construct(
@@ -20,9 +17,6 @@ final class CachedGetProductPriceByIdUseCase
     ) {
     }
 
-    /**
-     * Execute the use case with caching.
-     */
     public function execute(ProductId $productId): ?ProductPrice
     {
         $cachedData = $this->cacheService->getCachedProductPrice($productId);

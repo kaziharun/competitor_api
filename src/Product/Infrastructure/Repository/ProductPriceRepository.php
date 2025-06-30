@@ -10,9 +10,6 @@ use App\Product\Domain\ValueObject\ProductId;
 use App\Shared\Infrastructure\Persistence\BaseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-/**
- * @extends BaseRepository<ProductPrice>
- */
 final class ProductPriceRepository extends BaseRepository implements ProductPriceRepositoryInterface
 {
     public function __construct(EntityManagerInterface $entityManager)
@@ -35,9 +32,6 @@ final class ProductPriceRepository extends BaseRepository implements ProductPric
         $this->entityManager->flush();
     }
 
-    /**
-     * @param array<ProductPrice> $productPrices
-     */
     public function saveAll(array $productPrices): void
     {
         foreach ($productPrices as $productPrice) {
@@ -52,9 +46,6 @@ final class ProductPriceRepository extends BaseRepository implements ProductPric
             ->findOneBy(['productId' => $productId->getValue()]);
     }
 
-    /**
-     * @return array<ProductPrice>
-     */
     public function findAll(): array
     {
         return $this->entityManager->getRepository(ProductPrice::class)->findAll();

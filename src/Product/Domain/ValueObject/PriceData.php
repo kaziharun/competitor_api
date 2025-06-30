@@ -12,9 +12,6 @@ final class PriceData
     ) {
     }
 
-    /**
-     * @param array{vendor: string, price: float} $data
-     */
     public static function fromArray(array $data): self
     {
         if (!isset($data['vendor']) || !isset($data['price'])) {
@@ -37,9 +34,6 @@ final class PriceData
         return $this->price;
     }
 
-    /**
-     * @return array{vendor: string, price: float}
-     */
     public function toArray(): array
     {
         return [

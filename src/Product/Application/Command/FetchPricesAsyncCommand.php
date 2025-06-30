@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace App\Product\Application\Command;
 
-use App\Product\Application\Service\CommandOutputInterface;
-use App\Product\Application\Service\CommandOutputService;
-use App\Product\Application\Service\ProductFetchServiceInterface;
-use App\Product\Application\Service\ProductPriceResultFormatter;
+use App\Product\Application\Message\FetchPricesMessage;
+use App\Product\Domain\ValueObject\ProductId;
+use App\Product\Domain\ValueObject\RequestId;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsCommand(
     name: 'app:fetch-prices-async',
-    description: 'Fetch and aggregate prices for products from external APIs asynchronously'
+    description: 'Fetch product prices asynchronously from external APIs'
 )]
 final class FetchPricesAsyncCommand extends Command
 {
+    private const DEFAULT_PRODUCT_IDS = ['123', '456', '789'];
+
     public function __construct(
-        private readonly ProductFetchServiceInterface $productFetchService,
-        private readonly ProductPriceResultFormatter $formatter,
+        private readonly MessageBusInterface $messageBus,
     ) {
         parent::__construct();
     }
@@ -35,89 +35,71 @@ final class FetchPricesAsyncCommand extends Command
             ->addArgument(
                 'product-id',
                 InputArgument::OPTIONAL,
-                'The product ID to fetch prices for (if not provided, fetches all products)'
+                'Product ID to fetch prices for (if not provided, fetches all default products)'
             )
-            ->addOption(
-                'all',
-                'a',
-                InputOption::VALUE_NONE,
-                'Fetch prices for all products (same as not providing product-id)'
-            )
-            ->addOption(
-                'products',
-                'p',
-                InputOption::VALUE_OPTIONAL,
-                'Comma-separated list of product IDs to fetch (overrides default list)',
-                implode(',', $this->productFetchService->getDefaultProductIds())
-            )
-            ->addOption(
-                'dry-run',
-                null,
-                InputOption::VALUE_NONE,
-                'Show what would be fetched without actually fetching'
-            )
-            ->setHelp('This command fetches prices from external APIs and stores the lowest price for a product or all products.');
+            ->setHelp('This command fetches product prices from external APIs asynchronously.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $outputService = new CommandOutputService($io, $this->formatter);
-
         $productId = $input->getArgument('product-id');
-        $fetchAll = $input->getOption('all');
-        $productsOption = $input->getOption('products');
-        $isDryRun = $input->getOption('dry-run');
 
-        // If no product ID is provided or --all flag is used, fetch all products
-        if (null === $productId || $fetchAll) {
-            return $this->executeMultipleProductsFetch($outputService, $productsOption, $isDryRun);
+        if ($productId) {
+            $this->fetchSingleProduct($productId, $io);
+        } else {
+            $this->fetchAllDefaultProducts($io);
         }
 
-        // Fetch single product
-        return $this->executeSingleProductFetch($outputService, $productId, $isDryRun);
+        return Command::SUCCESS;
     }
 
-    private function executeSingleProductFetch(CommandOutputInterface $outputService, string $productId, bool $isDryRun): int
+    private function fetchSingleProduct(string $productId, SymfonyStyle $io): void
     {
-        $outputService->displaySingleProductFetch($productId, $isDryRun);
+        try {
+            $productIdValueObject = new ProductId($productId);
+            $requestId = new RequestId(uniqid('fetch_', true));
 
-        if ($isDryRun) {
-            return Command::SUCCESS;
+            $message = FetchPricesMessage::create($productIdValueObject, $requestId);
+            $this->messageBus->dispatch($message);
+
+            $io->success(sprintf(
+                'Price fetch request dispatched for product ID: %s (Request ID: %s)',
+                $productId,
+                $requestId->getValue()
+            ));
+
+            $io->note('The message has been queued. Run "php bin/console messenger:consume async" to process it.');
+        } catch (\InvalidArgumentException $e) {
+            $io->error('Invalid product ID: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            $io->error('Error dispatching message: ' . $e->getMessage());
         }
-
-        $result = $this->productFetchService->fetchSingleProduct($productId);
-
-        if ($result->isSuccess()) {
-            $outputService->displaySingleProductSuccess($productId);
-
-            return Command::SUCCESS;
-        }
-
-        $outputService->displaySingleProductError($productId, $result->getErrorMessage() ?? 'Unknown error');
-
-        return Command::FAILURE;
     }
 
-    private function executeMultipleProductsFetch(CommandOutputInterface $outputService, string $productsOption, bool $isDryRun): int
+    private function fetchAllDefaultProducts(SymfonyStyle $io): void
     {
-        $productIds = $this->productFetchService->parseProductIds($productsOption);
+        $io->info('Fetching prices for all default products...');
 
-        if (empty($productIds)) {
-            $outputService->displayNoProductsError();
+        foreach (self::DEFAULT_PRODUCT_IDS as $productId) {
+            try {
+                $productIdValueObject = new ProductId($productId);
+                $requestId = new RequestId(uniqid('fetch_', true));
 
-            return Command::FAILURE;
+                $message = FetchPricesMessage::create($productIdValueObject, $requestId);
+                $this->messageBus->dispatch($message);
+
+                $io->text(sprintf(
+                    '✓ Dispatched fetch request for product %s (Request ID: %s)',
+                    $productId,
+                    $requestId->getValue()
+                ));
+            } catch (\Exception $e) {
+                $io->text(sprintf('✗ Failed to dispatch for product %s: %s', $productId, $e->getMessage()));
+            }
         }
 
-        $outputService->displayMultipleProductsStart($productIds, $isDryRun);
-
-        if ($isDryRun) {
-            return Command::SUCCESS;
-        }
-
-        $results = $this->productFetchService->fetchMultipleProducts($productIds);
-        $outputService->displaySummary($results);
-
-        return $results->isAllSuccessful() ? Command::SUCCESS : Command::FAILURE;
+        $io->success('All fetch requests have been dispatched to the queue.');
+        $io->note('Run "php bin/console messenger:consume async" to process the messages.');
     }
-}
+} 

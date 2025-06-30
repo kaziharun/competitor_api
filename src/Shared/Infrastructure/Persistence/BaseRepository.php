@@ -8,15 +8,9 @@ use App\Shared\Domain\Entity\BaseEntity;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
 
-/**
- * @template T of BaseEntity
- */
 abstract class BaseRepository
 {
     protected EntityManagerInterface $entityManager;
-    /**
-     * @var ObjectRepository<T>
-     */
     protected ObjectRepository $repository;
 
     public function __construct(EntityManagerInterface $entityManager)
@@ -25,14 +19,8 @@ abstract class BaseRepository
         $this->repository = $entityManager->getRepository($this->getEntityClass());
     }
 
-    /**
-     * @return class-string<T>
-     */
     abstract protected function getEntityClass(): string;
 
-    /**
-     * @param array<T> $entities
-     */
     public function saveAll(array $entities): void
     {
         foreach ($entities as $entity) {
@@ -57,9 +45,6 @@ abstract class BaseRepository
         return $this->repository->find($id);
     }
 
-    /**
-     * @return array<T>
-     */
     public function findAll(): array
     {
         return $this->repository->findAll();
@@ -79,9 +64,6 @@ abstract class BaseRepository
         return $this->entityManager;
     }
 
-    /**
-     * @return ObjectRepository<T>
-     */
     protected function getRepository(): ObjectRepository
     {
         return $this->repository;

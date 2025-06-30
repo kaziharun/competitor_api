@@ -79,8 +79,6 @@ services:
             $repository: '@App\Product\Domain\Repository\ProductPriceRepositoryInterface'
             $cacheService: '@App\Product\Infrastructure\Cache\ProductPriceCacheService'
 
-    App\Product\Application\Service\ProductFetchServiceInterface: '@App\Product\Application\Service\AsyncProductFetchService'
-
     App\Product\Domain\Repository\ProductPriceRepositoryInterface: '@App\Product\Infrastructure\Repository\ProductPriceRepository'
 
     App\Shared\Infrastructure\Cache\CacheInterface: '@App\Shared\Infrastructure\Cache\RedisCache'
@@ -88,28 +86,6 @@ services:
     App\Shared\Infrastructure\Cache\RedisCache:
         arguments:
             $redis: '@redis.client'
-
-    App\Product\Application\UseCase\GetAllProductPricesUseCase:
-        arguments:
-            $repository: '@App\Product\Domain\Repository\ProductPriceRepositoryInterface'
-
-    App\Product\Application\UseCase\GetProductPriceByIdUseCase:
-        arguments:
-            $repository: '@App\Product\Domain\Repository\ProductPriceRepositoryInterface'
-
-    App\Product\Application\Handler\GetAllProductPricesQueryHandler:
-        # No arguments needed, class has no constructor
-
-    App\Product\Application\Handler\GetProductPriceByIdQueryHandler:
-        # No arguments needed, class has no constructor
-
-    App\Product\Application\Handler\CachedGetAllProductPricesQueryHandler:
-        arguments:
-            $useCase: '@App\Product\Application\UseCase\CachedGetAllProductPricesUseCase'
-
-    App\Product\Application\Handler\CachedGetProductPriceByIdQueryHandler:
-        arguments:
-            $useCase: '@App\Product\Application\UseCase\CachedGetProductPriceByIdUseCase'
 
     App\Product\Application\UseCase\FetchCompetitorPricesUseCase:
         arguments:
@@ -119,15 +95,6 @@ services:
         arguments:
             $fetchUseCase: '@App\Product\Application\UseCase\FetchCompetitorPricesUseCase'
             $repository: '@App\Product\Domain\Repository\ProductPriceRepositoryInterface'
-
-    App\Product\Application\Handler\FetchPricesCommandHandler:
-        arguments:
-            $aggregationService: '@App\Product\Domain\Service\PriceAggregationService'
-            $apiFactory: '@App\Product\Infrastructure\Api\CompetitorApiFactory'
-
-    App\Product\Application\Service\AsyncProductFetchService:
-        arguments:
-            $messageBus: '@messenger.default_bus'
 
     App\Product\Application\Service\ProductPriceApiService:
         arguments:

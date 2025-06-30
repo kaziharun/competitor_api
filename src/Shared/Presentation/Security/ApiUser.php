@@ -15,7 +15,6 @@ final class ApiUser implements UserInterface
 
     public function eraseCredentials(): void
     {
-        // No credentials to erase for API user
     }
 
     public function getUserIdentifier(): string

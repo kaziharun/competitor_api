@@ -8,9 +8,6 @@ use App\Product\Domain\Entity\ProductPrice;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Shared\Infrastructure\Cache\CacheInterface;
 
-/**
- * Cache service for product prices with different caching strategies.
- */
 final class ProductPriceCacheService
 {
     private const CACHE_TTL = 300;
@@ -22,31 +19,6 @@ final class ProductPriceCacheService
     ) {
     }
 
-    /**
-     * Cache API response for a specific product.
-     */
-    public function cacheApiResponse(ProductId $productId, array $priceData, int $ttl = self::CACHE_TTL): bool
-    {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
-
-        return $this->cache->set($cacheKey, $priceData, $ttl);
-    }
-
-    /**
-     * Get cached API response for a specific product.
-     */
-    public function getCachedApiResponse(ProductId $productId): ?array
-    {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
-
-        $cachedData = $this->cache->get($cacheKey);
-
-        return $cachedData;
-    }
-
-    /**
-     * Cache individual product price entity.
-     */
     public function cacheProductPrice(ProductPrice $productPrice): bool
     {
         $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productPrice->getProductId()->getValue();
@@ -55,9 +27,6 @@ final class ProductPriceCacheService
         return $this->cache->set($cacheKey, $serializedData, self::CACHE_TTL);
     }
 
-    /**
-     * Get cached product price.
-     */
     public function getCachedProductPrice(ProductId $productId): ?ProductPrice
     {
         $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
@@ -70,9 +39,6 @@ final class ProductPriceCacheService
         return $this->deserializeProductPrice($cachedData);
     }
 
-    /**
-     * Cache product list (all products).
-     */
     public function cacheProductList(array $productPrices): bool
     {
         $serializedData = array_map(
@@ -83,9 +49,6 @@ final class ProductPriceCacheService
         return $this->cache->set(self::PRODUCT_LIST_KEY, $serializedData, self::CACHE_TTL);
     }
 
-    /**
-     * Get cached product list.
-     */
     public function getCachedProductList(): ?array
     {
         $cachedData = $this->cache->get(self::PRODUCT_LIST_KEY);
@@ -98,59 +61,6 @@ final class ProductPriceCacheService
             fn ($data) => $this->deserializeProductPrice($data),
             $cachedData
         );
-    }
-
-    /**
-     * Cache aggregated prices for a product.
-     */
-    public function cacheAggregatedPrices(ProductId $productId, array $aggregatedData, int $ttl = self::CACHE_TTL): bool
-    {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
-
-        return $this->cache->set($cacheKey, $aggregatedData, $ttl);
-    }
-
-    /**
-     * Get cached aggregated prices.
-     */
-    public function getCachedAggregatedPrices(ProductId $productId): ?array
-    {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
-
-        $cachedData = $this->cache->get($cacheKey);
-
-        return $cachedData;
-    }
-
-    /**
-     * Invalidate cache for a specific product.
-     */
-    public function invalidateProductCache(ProductId $productId): bool
-    {
-        $cacheKey = self::PRODUCT_PRICE_KEY_PREFIX.$productId->getValue();
-
-        return $this->cache->delete($cacheKey);
-    }
-
-    /**
-     * Invalidate all product-related cache.
-     */
-    public function invalidateAllProductCache(): bool
-    {
-        return $this->cache->delete(self::PRODUCT_LIST_KEY);
-    }
-
-    /**
-     * Get cache statistics.
-     */
-    public function getCacheStats(): array
-    {
-        // This would require additional Redis commands to get actual statistics
-        // For now, return basic info
-        return [
-            'cache_service' => 'ProductPriceCacheService',
-            'ttl' => self::CACHE_TTL,
-        ];
     }
 
     private function serializeProductPrice(ProductPrice $productPrice): array
@@ -174,4 +84,4 @@ final class ProductPriceCacheService
             new \App\Product\Domain\ValueObject\FetchedAt(new \DateTimeImmutable($data['fetched_at']))
         );
     }
-}
+} 

@@ -9,9 +9,6 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
-/**
- * Compiler pass to register competitor APIs with the factory.
- */
 final class CompetitorApiCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void

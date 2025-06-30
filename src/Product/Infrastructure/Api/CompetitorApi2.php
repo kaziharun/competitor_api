@@ -6,18 +6,6 @@ namespace App\Product\Infrastructure\Api;
 
 use App\Product\Domain\ValueObject\ProductId;
 
-/**
- * External Competitor API 2 Implementation.
- *
- * This API returns competitor prices in the following format:
- * {
- *   "id": "123",
- *   "competitor_data": [
- *     { "name": "VendorOne", "amount": 20.49 },
- *     { "name": "VendorTwo", "amount": 18.99 }
- *   ]
- * }
- */
 final class CompetitorApi2 implements ExternalApiInterface
 {
     public function __construct()
@@ -58,13 +46,6 @@ final class CompetitorApi2 implements ExternalApiInterface
         ];
     }
 
-    /**
-     * Get mock data for the specified product ID.
-     *
-     * @param string $productId Product ID
-     *
-     * @return array<string, mixed>|null Mock data or null if not found
-     */
     private function getMockData(string $productId): ?array
     {
         $mockProducts = [

@@ -7,11 +7,6 @@ namespace App\Product\Application\Message;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\RequestId;
 
-/**
- * Message for fetching prices from external APIs.
- *
- * This message is dispatched to the queue system for asynchronous processing.
- */
 final class FetchPricesMessage
 {
     public function __construct(

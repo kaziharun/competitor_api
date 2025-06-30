@@ -46,9 +46,6 @@ final class ProductPriceResponse
         return $this->fetchedAt;
     }
 
-    /**
-     * @return array{product_id: string, vendor_name: string, price: float, fetched_at: string}
-     */
     public function toArray(): array
     {
         return [

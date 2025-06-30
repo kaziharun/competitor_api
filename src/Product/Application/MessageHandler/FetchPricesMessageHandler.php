@@ -10,12 +10,6 @@ use App\Product\Domain\Repository\ProductPriceRepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 
-/**
- * Message handler for processing fetch prices messages asynchronously.
- *
- * This handler processes messages from the queue system and executes
- * the actual price fetching logic.
- */
 #[AsMessageHandler]
 final class FetchPricesMessageHandler
 {

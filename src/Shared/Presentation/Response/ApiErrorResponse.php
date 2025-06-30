@@ -54,13 +54,6 @@ final class ApiErrorResponse
         );
     }
 
-    /**
-     * Create a service unavailable error response.
-     *
-     * @param string $message Error message
-     *
-     * @return self Error response instance
-     */
     public static function serviceUnavailable(string $message): self
     {
         return new self(
@@ -71,11 +64,6 @@ final class ApiErrorResponse
         );
     }
 
-    /**
-     * Convert error response to array format.
-     *
-     * @return array<string, mixed> Array representation of the error response
-     */
     public function toArray(): array
     {
         $data = [

@@ -14,7 +14,6 @@ final class ProductId extends Identifier
             throw new \InvalidArgumentException('Product ID cannot be empty');
         }
 
-        // Product-specific validation
         if (!preg_match('/^[a-zA-Z0-9-_]+$/', $value)) {
             throw new \InvalidArgumentException('Product ID can only contain alphanumeric characters, hyphens, and underscores');
         }

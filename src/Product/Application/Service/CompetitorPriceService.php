@@ -19,11 +19,6 @@ class CompetitorPriceService
     ) {
     }
 
-    /**
-     * @param ProductId|null $productId Optional product ID to fetch prices for a specific product
-     *
-     * @return array<ProductPrice>
-     */
     public function fetchAndAggregatePrices(?ProductId $productId = null): array
     {
         $allPrices = [];
@@ -52,13 +47,6 @@ class CompetitorPriceService
         return $allPrices;
     }
 
-    /**
-     * Fetch prices from all available APIs and convert to PriceData objects.
-     *
-     * @param ProductId $productId Product ID to fetch prices for
-     *
-     * @return array<PriceData> Array of price data from all APIs
-     */
     private function fetchPricesFromAllApis(ProductId $productId): array
     {
         $allPriceData = [];
@@ -76,14 +64,6 @@ class CompetitorPriceService
         return $allPriceData;
     }
 
-    /**
-     * Extract price data from API result based on the API format.
-     *
-     * @param array<string, mixed> $result  API result data
-     * @param string               $apiName Name of the API for logging
-     *
-     * @return array<PriceData> Array of price data
-     */
     private function extractPricesFromApiResult(array $result, string $apiName): array
     {
         $prices = [];
@@ -114,9 +94,6 @@ class CompetitorPriceService
         return $prices;
     }
 
-    /**
-     * @param PriceData[] $prices
-     */
     private function findLowestPrice(array $prices): PriceData
     {
         if (empty($prices)) {
