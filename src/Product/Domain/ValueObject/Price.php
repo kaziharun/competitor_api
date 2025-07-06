@@ -6,15 +6,11 @@ namespace App\Product\Domain\ValueObject;
 
 final class Price
 {
-    private float $value;
-
-    public function __construct(float $value)
+    public function __construct(private float $value)
     {
-        if ($value < 0) {
+        if ($this->value < 0) {
             throw new \InvalidArgumentException('Price cannot be negative');
         }
-
-        $this->value = $value;
     }
 
     public function getValue(): float
@@ -30,25 +26,5 @@ final class Price
     public function equals(Price $other): bool
     {
         return $this->value === $other->value;
-    }
-
-    public function add(Price $other): Price
-    {
-        return new self($this->value + $other->value);
-    }
-
-    public function subtract(Price $other): Price
-    {
-        $result = $this->value - $other->value;
-        if ($result < 0) {
-            throw new \InvalidArgumentException('Price cannot be negative');
-        }
-
-        return new self($result);
-    }
-
-    public function __toString(): string
-    {
-        return (string) $this->value;
     }
 }

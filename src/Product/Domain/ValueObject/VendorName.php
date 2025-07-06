@@ -6,15 +6,11 @@ namespace App\Product\Domain\ValueObject;
 
 final class VendorName
 {
-    private string $value;
-
-    public function __construct(string $value)
+    public function __construct(private string $value)
     {
-        if (empty(trim($value))) {
+        if (empty(trim($this->value))) {
             throw new \InvalidArgumentException('Vendor name cannot be empty');
         }
-
-        $this->value = trim($value);
     }
 
     public function getValue(): string

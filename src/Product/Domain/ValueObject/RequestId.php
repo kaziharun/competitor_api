@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace App\Product\Domain\ValueObject;
 
+use Ramsey\Uuid\Uuid;
+
 final class RequestId
 {
-    public function __construct(
-        private readonly string $value,
+    private function __construct(
+        private string $value,
     ) {
-        if (empty(trim($value))) {
-            throw new \InvalidArgumentException('Request ID cannot be empty');
-        }
+        $this->validate();
+    }
+
+    public static function generate(): self
+    {
+        return new self(Uuid::uuid4()->toString());
     }
 
     public function getValue(): string
@@ -19,13 +24,19 @@ final class RequestId
         return $this->value;
     }
 
-    public function equals(RequestId $other): bool
+    public function equals(self $other): bool
     {
         return $this->value === $other->value;
     }
 
-    public function __toString(): string
+    private function validate(): void
     {
-        return $this->value;
+        if (empty(trim($this->value))) {
+            throw new \InvalidArgumentException('Request ID cannot be empty');
+        }
+
+        if (!Uuid::isValid($this->value)) {
+            throw new \InvalidArgumentException('Invalid request ID format');
+        }
     }
 }

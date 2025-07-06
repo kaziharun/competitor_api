@@ -76,11 +76,4 @@ class ProductPrice extends BaseEntity
         $this->updateTimestamp();
     }
 
-    public function equals(ProductPrice $other): bool
-    {
-        return $this->productId === $other->productId
-               && $this->vendorName === $other->vendorName
-               && $this->price === $other->price
-               && $this->fetchedAt->getTimestamp() === $other->fetchedAt->getTimestamp();
-    }
 }

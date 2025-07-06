@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class ProductPriceRepository extends BaseRepository implements ProductPriceRepositoryInterface
 {
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct($entityManager);
     }
@@ -22,31 +22,26 @@ final class ProductPriceRepository extends BaseRepository implements ProductPric
         return ProductPrice::class;
     }
 
-    public function save(\App\Shared\Domain\Entity\BaseEntity $entity): void
+    public function saveOrUpdate(ProductPrice $newPrice): void
     {
-        if (!$entity instanceof ProductPrice) {
-            throw new \InvalidArgumentException('Entity must be a ProductPrice');
+        $existingPrice = $this->findByProductId($newPrice->getProductId());
+
+        if ($existingPrice) {
+            $this->updatePriceDetails($existingPrice, $newPrice);
+        } else {
+            $this->entityManager->persist($newPrice);
         }
 
-        $this->entityManager->persist($entity);
         $this->entityManager->flush();
     }
 
-    public function saveOrUpdate(ProductPrice $productPrice): void
+    private function updatePriceDetails(ProductPrice $existingPrice, ProductPrice $newPriceData): void
     {
-        $existing = $this->findByProductId($productPrice->getProductId());
-
-        if ($existing) {
-            $existing->updatePrice(
-                $productPrice->getPrice(),
-                $productPrice->getVendorName(),
-                $productPrice->getFetchedAt()
-            );
-        } else {
-            $this->entityManager->persist($productPrice);
-        }
-
-        $this->entityManager->flush();
+        $existingPrice->updatePrice(
+            $newPriceData->getPrice(),
+            $newPriceData->getVendorName(),
+            $newPriceData->getFetchedAt()
+        );
     }
 
     public function saveAll(array $productPrices): void
@@ -79,14 +74,5 @@ final class ProductPriceRepository extends BaseRepository implements ProductPric
         }
 
         return $qb->getQuery()->getResult();
-    }
-
-    public function deleteByProductId(ProductId $productId): void
-    {
-        $productPrice = $this->findByProductId($productId);
-        if (null !== $productPrice) {
-            $this->entityManager->remove($productPrice);
-            $this->entityManager->flush();
-        }
     }
 }

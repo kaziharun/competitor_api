@@ -18,11 +18,10 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 final class ApiKeyAuthenticator extends AbstractAuthenticator
 {
     private const API_KEY_HEADER = 'X-API-Key';
-    private string $apiKey;
 
-    public function __construct(string $apiKey)
-    {
-        $this->apiKey = $apiKey;
+    public function __construct(
+        private readonly string $apiKey,
+    ) {
     }
 
     public function supports(Request $request): bool
@@ -32,13 +31,13 @@ final class ApiKeyAuthenticator extends AbstractAuthenticator
 
     public function authenticate(Request $request): Passport
     {
-        $apiKey = $request->headers->get(self::API_KEY_HEADER);
+        $providedKey = $request->headers->get(self::API_KEY_HEADER);
 
-        if (null === $apiKey) {
+        if (null === $providedKey) {
             throw new CustomUserMessageAuthenticationException('No API key provided');
         }
 
-        if ($this->apiKey !== $apiKey) {
+        if (!hash_equals($this->apiKey, $providedKey)) {
             throw new CustomUserMessageAuthenticationException('Invalid API key');
         }
 

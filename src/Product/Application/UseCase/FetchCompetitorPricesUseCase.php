@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Product\Application\UseCase;
 
-use App\Product\Application\Service\CompetitorPriceService;
 use App\Product\Domain\ValueObject\ProductId;
+use App\Product\Infrastructure\Service\CompetitorPriceService;
 
-final class FetchCompetitorPricesUseCase
+class FetchCompetitorPricesUseCase
 {
     public function __construct(
         private readonly CompetitorPriceService $competitorPriceService,

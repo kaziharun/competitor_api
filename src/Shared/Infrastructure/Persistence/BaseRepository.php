@@ -10,35 +10,15 @@ use Doctrine\Persistence\ObjectRepository;
 
 abstract class BaseRepository
 {
-    protected EntityManagerInterface $entityManager;
     protected ObjectRepository $repository;
 
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-        $this->repository = $entityManager->getRepository($this->getEntityClass());
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+    ) {
+        $this->repository = $this->entityManager->getRepository($this->getEntityClass());
     }
 
     abstract protected function getEntityClass(): string;
-
-    public function saveAll(array $entities): void
-    {
-        foreach ($entities as $entity) {
-            $this->save($entity);
-        }
-    }
-
-    public function save(BaseEntity $entity): void
-    {
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
-    }
-
-    public function remove(BaseEntity $entity): void
-    {
-        $this->entityManager->remove($entity);
-        $this->entityManager->flush();
-    }
 
     public function findById(int $id): ?BaseEntity
     {
@@ -52,11 +32,12 @@ abstract class BaseRepository
 
     public function count(): int
     {
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->select('COUNT(e.id)')
-           ->from($this->getEntityClass(), 'e');
-
-        return (int) $qb->getQuery()->getSingleScalarResult();
+        return (int) $this->entityManager
+            ->createQueryBuilder()
+            ->select('COUNT(e.id)')
+            ->from($this->getEntityClass(), 'e')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     protected function getEntityManager(): EntityManagerInterface

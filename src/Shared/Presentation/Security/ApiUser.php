@@ -13,12 +13,12 @@ final class ApiUser implements UserInterface
         return ['ROLE_API'];
     }
 
-    public function eraseCredentials(): void
-    {
-    }
-
     public function getUserIdentifier(): string
     {
         return 'api-user';
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 }

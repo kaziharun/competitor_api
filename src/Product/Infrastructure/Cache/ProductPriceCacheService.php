@@ -6,13 +6,14 @@ namespace App\Product\Infrastructure\Cache;
 
 use App\Product\Domain\Entity\ProductPrice;
 use App\Product\Domain\Repository\ProductPriceRepositoryInterface;
+use App\Product\Domain\Service\ProductPriceCacheServiceInterface;
 use App\Product\Domain\ValueObject\FetchedAt;
 use App\Product\Domain\ValueObject\Price;
 use App\Product\Domain\ValueObject\ProductId;
 use App\Product\Domain\ValueObject\VendorName;
 use App\Shared\Infrastructure\Cache\RedisCache;
 
-final class ProductPriceCacheService
+final class ProductPriceCacheService implements ProductPriceCacheServiceInterface
 {
     private const CACHE_PREFIX = 'product_price:';
     private const CACHE_TTL = 3600;

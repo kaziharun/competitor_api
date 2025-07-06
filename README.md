@@ -1,4 +1,4 @@
-# Metro Market
+# Competitor API
 
 ## Installation
 
@@ -65,35 +65,80 @@ curl -X GET "http://localhost:8000/api/prices" \
   -H "X-API-Key: K4kP9wqX2YbV5nJm8tRv7sA6zQ3fH1gL" 
 ```
 
+## Run integration test
+composer test:integration
+
+## Run unit test
+composer test:unit
+
 ## Code Structure
 
 This project follows a **Clean Architecture** pattern with the following structure:
 
+## **Core Architecture Layers**
+
 ### **Domain Layer** (`src/Product/Domain/`)
-- **Entities**: `ProductPrice` - Core business objects
-- **Value Objects**: `ProductId`, `Price`, `VendorName` - Immutable business values
-- **Services**: `PriceAggregationService` - Business logic for price aggregation
-- **Repositories**: Interfaces defining data access contracts
+- **Entities**: `ProductPrice` - Core business objects representing product price data
+- **Value Objects**: 
+  - `ProductId`, `Price`, `VendorName` - Core business values
+  - `FetchedAt`, `RequestId`, `PriceData` - Additional business value objects
+- **Services**: 
+  - `ExternalApiInterface` - Domain contract for external API interactions
+  - `ProductFetchServiceInterface` - Domain contract for product fetching
+  - `DefaultProductIdsService` - Default product ID management
+- **Repository**: Interface defining data access contracts
+- **Validation**: Domain-level validation rules
 
 ### **Application Layer** (`src/Product/Application/`)
-- **Use Cases**: Business operations like `FetchCompetitorPricesUseCase`
-- **Services**: `CompetitorPriceService`, `ProductPriceApiService` - Application logic
-- **Commands/Queries**: `FetchPricesCommandData` - Input/output data structures
-- **Message Handlers**: `FetchPricesMessageHandler` - Async message processing
+- **Use Cases**: 
+  - `FetchCompetitorPricesUseCase` - Fetch prices from competitor APIs
+  - `GetProductPriceByIdUseCase` - Retrieve specific product price
+  - `GetAllProductPricesUseCase` - Retrieve all product prices
+- **Services**: 
+  - `ProductPriceService` - Main application service for price operations
+  - `FetchResult` - Result wrapper for fetch operations
+- **Message Handlers**: Async message processing for background operations
+- **Commands/Queries**: Command and query data structures
+- **DTOs**: Data transfer objects for application layer
+- **Exceptions**: Application-specific exceptions
 
 ### **Infrastructure Layer** (`src/Product/Infrastructure/`)
-- **APIs**: `CompetitorApi1`, `CompetitorApi2`, `CompetitorApi3` - External API integrations
-- **Repository**: `ProductPriceRepository` - Database implementation
-- **Cache**: `ProductPriceCacheService` - Caching layer
-- **External**: `MockApiClient`, `RetryableApiClient` - HTTP client implementations
+- **API Clients**: 
+  - `CompetitorApi1`, `CompetitorApi2`, `CompetitorApi3` - External competitor API integrations
+- **API Factory**: 
+  - `CompetitorApiFactory` - Factory for creating API client instances
+- **Services**: 
+  - `CompetitorPriceService` - Service for aggregating competitor prices
+  - `AsyncProductFetchService` - Asynchronous product fetching service
+- **Repository**: 
+  - `ProductPriceRepository` - Doctrine-based database implementation
+- **Cache**: 
+  - `ProductPriceCacheService` - Redis-based caching layer for performance
 
 ### **Presentation Layer** (`src/Product/Presentation/`)
-- **Controllers**: `ProductPriceController` - HTTP request handling
-- **DTOs**: Request/Response data transfer objects
+- **Controllers**: 
+  - `ProductPriceController` - HTTP request handling for price endpoints
+- **Validation**: Presentation-level validation rules
 
-### **Key Features**
-- **Async Processing**: Uses Symfony Messenger for background price fetching
-- **Multi-Source Aggregation**: Fetches prices from multiple APIs and stores only the lowest
-- **Caching**: Redis-based caching for performance
-- **Error Handling**: Centralized error handling with proper HTTP status codes
-- **Validation**: Input validation at multiple layers 
+## **Shared Components** (`src/Shared/`)
+
+### **Shared Domain** (`src/Shared/Domain/`)
+- **Value Objects**: 
+  - `Identifier` - Base identifier value object used across domains
+- **Entities**: Shared entity base classes
+
+### **Shared Infrastructure** (`src/Shared/Infrastructure/`)
+- Common infrastructure components used across domains
+
+### **Shared Presentation** (`src/Shared/Presentation/`)
+- Common presentation components and utilities
+
+## **Key Features**
+- **Clean Architecture**: Strict separation of concerns with dependency inversion
+- **Domain-Driven Design**: Rich domain model with value objects and entities
+- **Async Processing**: Symfony Messenger integration for background operations
+- **Multi-Source Aggregation**: Fetches prices from multiple APIs and stores optimal prices
+- **Caching Strategy**: Redis-based caching for improved performance
+- **Error Handling**: Centralized exception handling with proper HTTP status codes
+- **Validation**: Multi-layer validation (Domain, Application, Presentation)
+- **Testing**: Comprehensive unit and integration test coverage 

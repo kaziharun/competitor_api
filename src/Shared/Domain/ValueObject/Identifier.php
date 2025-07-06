@@ -6,12 +6,9 @@ namespace App\Shared\Domain\ValueObject;
 
 abstract class Identifier
 {
-    protected string $value;
-
-    public function __construct(string $value)
+    public function __construct(protected string $value)
     {
-        $this->validate($value);
-        $this->value = $value;
+        $this->validate();
     }
 
     public function getValue(): string
@@ -29,9 +26,9 @@ abstract class Identifier
         return $this->value;
     }
 
-    protected function validate(string $value): void
+    protected function validate(): void
     {
-        if (empty(trim($value))) {
+        if (empty(trim($this->value))) {
             throw new \InvalidArgumentException('Identifier cannot be empty');
         }
     }
